@@ -1,4 +1,5 @@
 # atx-agent
+static build 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s -extldflags "-static"' -o atx-agent'
 [![Build Status](https://travis-ci.org/openatx/atx-agent.svg?branch=master)](https://travis-ci.org/openatx/atx-agent)
 
 这个项目的主要目的是为了屏蔽不同安卓机器的差异，然后开放出统一的HTTP接口供 [openatx/uiautomator2](https://github.com/openatx/uiautomator2)使用。项目最终会发布成一个二进制程序，运行在Android系统的后台。
