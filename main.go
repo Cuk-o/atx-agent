@@ -287,7 +287,7 @@ var (
 	// target, _ := url.Parse("http://127.0.0.1:9008")
 	// uiautomatorProxy := httputil.NewSingleHostReverseProxy(target)
 
-	uiautomatorTimer = NewSafeTimer(time.Hour * 3)
+    uiautomatorTimer = NewSafeTimer(time.Hour * 24)
 
 	uiautomatorProxy = &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -527,7 +527,7 @@ func main() {
 	cmdServer.Flag("addr", "listen port").Default(":7912").StringVar(&listenAddr) // Create on 2017/09/12
 	cmdServer.Flag("log", "log file path when in daemon mode").StringVar(&daemonLogPath)
 	// fServerURL := cmdServer.Flag("server", "server url").Short('t').String()
-	fNoUiautomator := cmdServer.Flag("nouia", "do not start uiautoamtor when start").Bool()
+	//fNoUiautomator := cmdServer.Flag("nouia", "do not start uiautoamtor when start").Bool()
 
 	// CMD: version
 	kingpin.Command("version", "show version")
@@ -682,8 +682,8 @@ func main() {
 		//"com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner"},
 		Stdout:          os.Stdout,
 		Stderr:          os.Stderr,
-		MaxRetries:      1, // only once
-		RecoverDuration: 30 * time.Second,
+		MaxRetries:      3, // only once
+		RecoverDuration: 5 * time.Second,
 		StopSignal:      os.Interrupt,
 		OnStart: func() error {
 			uiautomatorTimer.Reset()
@@ -700,17 +700,11 @@ func main() {
 	})
 
 	// stop uiautomator when 3 minutes not requests
-	go func() {
-		for range uiautomatorTimer.C {
-			log.Println("uiautomator has not activity for 3 minutes, closed")
-			service.Stop("uiautomator")
-			service.Stop("uiautomator-1.0")
-		}
-	}()
-
-	if !*fNoUiautomator {
-		if err := service.Start("uiautomator"); err != nil {
-			log.Println("uiautomator start failed:", err)
+	if err := service.Start("uiautomator"); err != nil {
+		log.Println("uiautomator 2.0 start failed:", err)
+		// Пробуем запустить версию 1.0 как запасной вариант
+		if err := service.Start("uiautomator-1.0"); err != nil {
+			log.Println("uiautomator 1.0 start failed:", err)
 		}
 	}
 
